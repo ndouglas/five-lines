@@ -64,7 +64,7 @@ class Player {
   move(dx: number, dy: number) {
     this.moveToTile(this.x + dx, this.y + dy);
   }
-  moveToTile(newx: number, newy: number) {
+  private moveToTile(newx: number, newy: number) {
     map[this.y][this.x] = new Air();
     map[newy][newx] = new PlayerTile();
     this.x = newx;
@@ -358,10 +358,6 @@ function transformMap() {
 }
 
 let inputs: Input[] = [];
-
-function moveToTile(newx: number, newy: number) {
-  player.moveToTile(newx, newy);
-}
 
 function update() {
   handleInputs();
