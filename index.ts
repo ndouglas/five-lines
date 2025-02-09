@@ -273,7 +273,7 @@ let rawMap: RawTile[][] = [
 ];
 let map: Tile[][];
 
-function assertExhausted(x: never) {
+function assertExhausted(x: never): never {
   throw new Error("Unexpected object: " + x);
 }
 
