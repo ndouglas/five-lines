@@ -66,7 +66,7 @@ enum RawTile {
   KEY2, LOCK2
 }
 
-interface Tile2 {
+interface Tile {
   isAir(): boolean;
   isFlux(): boolean;
   isUnbreakable(): boolean;
@@ -271,7 +271,7 @@ let rawMap: RawTile[][] = [
   [2, 4, 1, 1, 1, 9, 0, 2],
   [2, 2, 2, 2, 2, 2, 2, 2],
 ];
-let map: Tile2[][];
+let map: Tile[][];
 
 function assertExhausted(x: never) {
   throw new Error("Unexpected object: " + x);
