@@ -54,6 +54,22 @@ class Resting implements FallingState {
   isFalling(): boolean { return false; }
 }
 
+interface RemoveStrategy {
+  check(tile: Tile): boolean;
+}
+
+class RemoveLock1 implements RemoveStrategy {
+  check(tile: Tile): boolean {
+    return tile.isLock1();
+  }
+}
+
+class RemoveLock2 implements RemoveStrategy {
+  check(tile: Tile): boolean {
+    return tile.isLock2();
+  }
+}
+
 class FallStrategy {
   private state: FallingState;
   constructor(state: FallingState) {
@@ -211,11 +227,11 @@ class Key1 {
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void {
-    removeLock1();
+    remove(new RemoveLock1());
     moveToTile(playerx + dx, playery);
   }
   moveVertical(dy: number): void {
-    removeLock1();
+    remove(new RemoveLock1());
     moveToTile(playerx, playery + dy);
   }
   isBoxy(): boolean { return false; }
@@ -247,11 +263,11 @@ class Key2 {
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void {
-    removeLock2();
+    remove(new RemoveLock2());
     moveToTile(playerx + dx, playery);
   }
   moveVertical(dy: number): void {
-    removeLock2();
+    remove(new RemoveLock2());
     moveToTile(playerx, playery + dy);
   }
   isBoxy(): boolean { return false; }
@@ -320,20 +336,10 @@ function transformMap() {
 
 let inputs: Input[] = [];
 
-function removeLock1() {
+function remove(shouldRemove: RemoveStrategy) {
   for (let y = 0; y < map.length; y++) {
     for (let x = 0; x < map[y].length; x++) {
-      if (map[y][x].isLock1()) {
-        map[y][x] = new Air();
-      }
-    }
-  }
-}
-
-function removeLock2() {
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[y].length; x++) {
-      if (map[y][x].isLock2()) {
+      if (shouldRemove.check(map[y][x])) {
         map[y][x] = new Air();
       }
     }
