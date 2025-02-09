@@ -69,7 +69,6 @@ class FallStrategy {
       map[y][x] = new Air();
     }
   }
-  rest(): void { this.state = new Resting(); }
   isFalling(): boolean { return this.state.isFalling(); }
 }
 
@@ -82,8 +81,6 @@ interface Tile {
   moveVertical(dy: number): void;
   isBoxy(): boolean;
   isStony(): boolean;
-  isFalling(): boolean;
-  canFall(): boolean;
   update(x: number, y: number): void;
 }
 
@@ -100,8 +97,6 @@ class Air {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -121,8 +116,6 @@ class Flux {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -138,8 +131,6 @@ class Unbreakable {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -152,8 +143,6 @@ class Player {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -170,7 +159,7 @@ class Stone {
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void {
-    if (this.isFalling()) {
+    if (this.fallStrategy.isFalling()) {
       if (map[playery][playerx + dx + dx].isAir() && !map[playery + 1][playerx + dx].isAir()) {
         map[playery][playerx + dx + dx] = map[playery][playerx + dx];
         moveToTile(playerx + dx, playery);
@@ -180,8 +169,6 @@ class Stone {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return true; }
-  isFalling(): boolean { return this.fallStrategy.isFalling(); }
-  canFall(): boolean { return true; }
   update(x: number, y: number): void {
     this.fallStrategy.update(this, x, y);
   }
@@ -200,7 +187,7 @@ class Box {
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void {
-    if (!this.isFalling()) {
+    if (!this.fallStrategy.isFalling()) {
       if (map[playery][playerx + dx + dx].isAir() && !map[playery + 1][playerx + dx].isAir()) {
         map[playery][playerx + dx + dx] = map[playery][playerx + dx];
         moveToTile(playerx + dx, playery);
@@ -210,8 +197,6 @@ class Box {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return true; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return this.fallStrategy.isFalling(); }
-  canFall(): boolean { return true; }
   update(x: number, y: number): void {
     this.fallStrategy.update(this, x, y);
   }
@@ -235,8 +220,6 @@ class Key1 {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -252,8 +235,6 @@ class Lock1 {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -275,8 +256,6 @@ class Key2 {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
@@ -292,8 +271,6 @@ class Lock2 {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  isFalling(): boolean { return false; }
-  canFall(): boolean { return false; }
   update(x: number, y: number): void { }
 }
 
