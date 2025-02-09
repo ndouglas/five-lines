@@ -54,6 +54,25 @@ class Resting implements FallingState {
   isFalling(): boolean { return false; }
 }
 
+class FallStrategy {
+  private state: FallingState;
+  constructor(state: FallingState) {
+    this.state = state;
+  }
+  update(tile: Tile, x: number, y: number) {
+    this.state = map[y + 1][x].isAir() ? new Falling() : new Resting();
+    this.drop(tile, x, y);
+  }
+  drop(tile: Tile, x: number, y: number): void {
+    if (map[y + 1][x].isAir()) {
+      map[y + 1][x] = tile;
+      map[y][x] = new Air();
+    }
+  }
+  rest(): void { this.state = new Resting(); }
+  isFalling(): boolean { return this.state.isFalling(); }
+}
+
 interface Tile {
   isAir(): boolean;
   isLock1(): boolean;
@@ -63,9 +82,9 @@ interface Tile {
   moveVertical(dy: number): void;
   isBoxy(): boolean;
   isStony(): boolean;
-  drop(): void;
-  rest(): void;
   isFalling(): boolean;
+  canFall(): boolean;
+  update(x: number, y: number): void;
 }
 
 class Air {
@@ -81,9 +100,9 @@ class Air {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Flux {
@@ -102,9 +121,9 @@ class Flux {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Unbreakable {
@@ -119,9 +138,9 @@ class Unbreakable {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Player {
@@ -133,15 +152,15 @@ class Player {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Stone {
-  private falling: FallingState;
+  private fallStrategy: FallStrategy;
   constructor(falling: FallingState) {
-    this.falling = falling;
+    this.fallStrategy = new FallStrategy(falling);
   }
   isAir() { return false; }
   isLock1() { return false; }
@@ -161,15 +180,17 @@ class Stone {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return true; }
-  drop(): void { this.falling = new Falling(); }
-  rest(): void { this.falling = new Resting(); }
-  isFalling(): boolean { return this.falling.isFalling(); }
+  isFalling(): boolean { return this.fallStrategy.isFalling(); }
+  canFall(): boolean { return true; }
+  update(x: number, y: number): void {
+    this.fallStrategy.update(this, x, y);
+  }
 }
 
 class Box {
-  private falling: FallingState;
+  private fallStrategy: FallStrategy;
   constructor(falling: FallingState) {
-    this.falling = falling;
+    this.fallStrategy = new FallStrategy(falling);
   }
   isAir() { return false; }
   isLock1() { return false; }
@@ -189,9 +210,11 @@ class Box {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return true; }
   isStony(): boolean { return false; }
-  drop(): void { this.falling = new Falling(); }
-  rest(): void { this.falling = new Resting(); }
-  isFalling(): boolean { return this.falling.isFalling(); }
+  isFalling(): boolean { return this.fallStrategy.isFalling(); }
+  canFall(): boolean { return true; }
+  update(x: number, y: number): void {
+    this.fallStrategy.update(this, x, y);
+  }
 }
 
 class Key1 {
@@ -212,9 +235,9 @@ class Key1 {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Lock1 {
@@ -229,9 +252,9 @@ class Lock1 {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Key2 {
@@ -252,9 +275,9 @@ class Key2 {
   }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 class Lock2 {
@@ -269,9 +292,9 @@ class Lock2 {
   moveVertical(dy: number): void { }
   isBoxy(): boolean { return false; }
   isStony(): boolean { return false; }
-  drop(): void { }
-  rest(): void { }
   isFalling(): boolean { return false; }
+  canFall(): boolean { return false; }
+  update(x: number, y: number): void { }
 }
 
 let playerx = 1;
@@ -368,15 +391,7 @@ function updateMap() {
 }
 
 function updateTile(x: number, y: number) {
-  if (map[y][x].isStony() && map[y + 1][x].isAir()) {
-    map[y + 1][x] = new Stone(new Falling());
-    map[y][x] = new Air();
-  } else if (map[y][x].isBoxy() && map[y + 1][x].isAir()) {
-    map[y + 1][x] = new Box(new Falling());
-    map[y][x] = new Air();
-  } else if (map[y][x].isFalling()) {
-    map[y][x].rest();
-  }
+  map[y][x].update(x, y);
 }
 
 function draw() {
