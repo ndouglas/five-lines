@@ -63,9 +63,20 @@ class KeyConfiguration {
     this.id = id;
     this.removeStrategy = removeStrategy;
   }
-  getColor(): string { return this.color; }
+  private getColor(): string { return this.color; }
   fits(id: number): boolean { return this.id === id; }
-  getRemoveStrategy(): RemoveStrategy { return this.removeStrategy; }
+  setColor(g: CanvasRenderingContext2D): void {
+    g.fillStyle = this.color;
+  }
+  removeLock() {
+    for (let y = 0; y < map.length; y++) {
+      for (let x = 0; x < map[y].length; x++) {
+        if (this.removeStrategy.check(map[y][x])) {
+          map[y][x] = new Air();
+        }
+      }
+    }
+  }
 }
 
 interface RemoveStrategy {
@@ -244,15 +255,15 @@ class Key implements Tile {
   isLock1() { return false; }
   isLock2() { return false; }
   draw(g: CanvasRenderingContext2D, x: number, y: number): void {
-    g.fillStyle = this.configuration.getColor();
+    this.configuration.setColor(g);
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void {
-    remove(this.configuration.getRemoveStrategy());
+    this.configuration.removeLock();
     moveToTile(playerx + dx, playery);
   }
   moveVertical(dy: number): void {
-    remove(this.configuration.getRemoveStrategy());
+    this.configuration.removeLock();
     moveToTile(playerx, playery + dy);
   }
   isBoxy(): boolean { return false; }
@@ -269,7 +280,7 @@ class LockTile implements Tile {
   isLock1() { return this.configuration.fits(1); }
   isLock2() { return this.configuration.fits(2); }
   draw(g: CanvasRenderingContext2D, x: number, y: number): void {
-    g.fillStyle = this.configuration.getColor();
+    this.configuration.setColor(g);
     g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
   moveHorizontal(dx: number): void { }
@@ -324,16 +335,6 @@ function transformMap() {
 }
 
 let inputs: Input[] = [];
-
-function remove(shouldRemove: RemoveStrategy) {
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[y].length; x++) {
-      if (shouldRemove.check(map[y][x])) {
-        map[y][x] = new Air();
-      }
-    }
-  }
-}
 
 function moveToTile(newx: number, newy: number) {
   map[playery][playerx] = new Air();
